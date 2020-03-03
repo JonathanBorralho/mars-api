@@ -3,6 +3,7 @@ package br.jus.trema.mars.api.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,16 +15,18 @@ import br.jus.trema.mars.api.service.SolService;
 @Service
 public class ApiSolService implements SolService {
 	
-	private static String API_URL = "https://api.nasa.gov/insight_weather/?api_key=DEMO_KEY&feedtype=json&ver=1.0";
+	private static final String API_URL = "https://api.nasa.gov/insight_weather/?feedtype=json&ver=1.0&api_key=";
+	
+	@Value("${nasa.api.key:DEMO_KEY}")
+	private String apiKey;
 	
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	@Cacheable(value = "sols")
 	@Override
-	@Cacheable("sols")
 	public List<Sol> findAll() {
-		//restTemplate.getForEntity(API_URL, ApiResponseModel.class);
-		ApiResponseModel model = restTemplate.getForObject(API_URL, ApiResponseModel.class);
+		ApiResponseModel model = restTemplate.getForObject(API_URL.concat(apiKey), ApiResponseModel.class);
 		return model.getSols();
 	}
 	
